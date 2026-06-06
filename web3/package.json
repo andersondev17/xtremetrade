@@ -5,7 +5,10 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "hardhat compile",
+    "deploy": "hardhat deploy --tags xtreme",
+    "demo": "hardhat run scripts/exmaple.js"
   },
   "keywords": [],
   "author": "",
