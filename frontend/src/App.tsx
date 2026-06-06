@@ -389,27 +389,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="mt-6 p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                    <span className="text-[10px] font-mono uppercase text-text-tertiary block mb-1">
-                      Detailed Technical Grounding:
-                    </span>
-                    <p className="text-xs text-text-secondary leading-relaxed font-sans">
-                      {analyzedResult.explanation}
-                    </p>
-
-                    {analyzedResult.indicators && analyzedResult.indicators.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-4 select-none">
-                        {analyzedResult.indicators.map((ind, i) => (
-                          <span
-                            key={i}
-                            className="text-[9px] font-mono bg-white text-text-secondary px-2.5 py-0.5 rounded-md border border-gray-150"
-                          >
-                            {ind}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+      
                 </motion.section>
               )}
             </AnimatePresence>
