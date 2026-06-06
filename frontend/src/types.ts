@@ -8,7 +8,7 @@ export interface TradeSignal {
   id: string;
   token: string;
   signal: SignalType;
-  confidence: number; // 0 to 1
+  confidence: number;
   pattern: string;
   txHash: string;
   timestamp: number;
@@ -17,10 +17,10 @@ export interface TradeSignal {
   stopLoss: number;
   status: SignalStatus;
   result: SignalResult;
-  pnl?: number; // e.g. +4.5 or -1.2
-  timeframes?: string; // e.g., "1H", "4H", "1D"
+  pnl?: number;
+  timeframes?: string;
   notes?: string;
-  allocatedAmount?: number; // Simulated capital allocation amount
+  allocatedAmount?: number;
 }
 
 export interface ChartAnalysisResult {
@@ -64,6 +64,7 @@ export interface ScannedOpportunity {
   timeframe: string;
   reasoning: string;
   expectedPnl: number;
+  strategyScore?: number;
 }
 
 export interface SwapSuggestion {
@@ -77,6 +78,34 @@ export interface SwapSuggestion {
   toExpectedGain: number;
   reason: string;
   associatedOpportunity?: ScannedOpportunity;
+}
+
+export interface StopLossAlert {
+  id: string;
+  signalId: string;
+  token: string;
+  currentPrice: number;
+  stopLossPrice: number;
+  suggestedOpportunityId: string | null;
+  reason: string;
+  timestamp: number;
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
+}
+
+export interface ContractInterfaceFunction {
+  name: string;
+  selector: string;
+  params: string[];
+}
+
+export interface ContractInterface {
+  id: string;
+  name: string;
+  address: string;
+  abi: object[];
+  functions: ContractInterfaceFunction[];
+  tokens: string[];
+  createdAt: number;
 }
 
 export interface AgentState {
@@ -93,4 +122,5 @@ export interface AgentState {
   investmentPercentage: number;
   maxAvailablePositions: number;
   swapSuggestions: SwapSuggestion[];
+  stopLossAlerts: StopLossAlert[];
 }
