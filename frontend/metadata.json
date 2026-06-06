@@ -1,0 +1,6 @@
+{
+  "name": "Xtreme Trade",
+  "description": "AI-Powered Technical Analysis and Active Cryptocurency Signals Dashboard for the Monad Blockchain",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-brand-green: rgb(0, 255, 170);
+  --color-brand-purple: rgb(139, 92, 246);
+  --color-brand-cyan: rgb(6, 182, 212);
+
+  --color-bg-primary: #EAEAEA;
+  --color-bg-card: #FFFFFF;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+  --color-accent-green: #4ADE80;
+  --color-accent-green-light: #DCFCE7;
+  --color-chart-dark: #1F2937;
+  --color-chart-gray: #E5E7EB;
+}
+
+/* Custom visual adjustments */
+.glow-green {
+  box-shadow: 0 4px 20px -2px rgba(74, 222, 128, 0.15);
+}
+.glow-purple {
+  box-shadow: 0 4px 20px -2px rgba(139, 92, 246, 0.15);
+}
+.glow-red {
+  box-shadow: 0 4px 20px -2px rgba(239, 68, 68, 0.15);
+}
+
+@layer base {
+  body {
+    background-color: #EAEAEA;
+    color: #111827;
+    font-family: var(--font-sans);
+  }
+}
+
