@@ -1,11 +1,11 @@
-import { ArrowLeft, Bot, Cpu, History, Home, LineChart, Menu, PanelLeft, PanelLeftClose, RefreshCw, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Cpu, LineChart, History, RefreshCw, PanelLeftClose, PanelLeft, Menu, X, Bot, ArrowLeft, Home, Sliders, Upload } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { playClickSound } from "../lib/audio";
 
 interface SidebarProps {
-  currentView: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT";
-  setCurrentView: (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT") => void;
+  currentView: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT" | "CALIBRATION" | "PARSER";
+  setCurrentView: (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT" | "CALIBRATION" | "PARSER") => void;
   activeSignalsCount: number;
   completedSignalsCount: number;
   winRate: number;
@@ -68,13 +68,13 @@ export default function Sidebar({
     });
   };
 
-  const handleMobileNav = (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT") => {
+  const handleMobileNav = (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT" | "CALIBRATION" | "PARSER") => {
     playClickSound();
     setCurrentView(view);
     setIsMobileMenuOpen(false);
   };
 
-  const handleDesktopNav = (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT") => {
+  const handleDesktopNav = (view: "FEED" | "ANALYTICS" | "HISTORY" | "AGENT" | "CALIBRATION" | "PARSER") => {
     playClickSound();
     setCurrentView(view);
   };
@@ -104,7 +104,7 @@ export default function Sidebar({
             S
           </div>
           <div>
-            <span className="font-bold text-base tracking-tight text-[#1F2937] block">Xtreme Trade</span>
+            <span className="font-bold text-base tracking-tight text-[#1F2937] block">SignalAI</span>
             <span className="text-[8px] block text-[#9CA3AF] uppercase tracking-widest font-mono font-medium -mt-1.5">Red Monad</span>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function Sidebar({
                       S
                     </div>
                     <div>
-                      <span className="font-bold text-base tracking-tight text-[#1F2937] block">Xtreme Trade</span>
+                      <span className="font-bold text-base tracking-tight text-[#1F2937] block">SignalAI</span>
                       <span className="text-[8px] block text-[#9CA3AF] uppercase tracking-widest font-mono font-medium -mt-1">Red Monad</span>
                     </div>
                   </div>
@@ -180,6 +180,30 @@ export default function Sidebar({
                         PAUSADO
                       </span>
                     )}
+                  </button>
+
+                  <button 
+                    onClick={() => handleMobileNav("CALIBRATION")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono tracking-wide font-medium transition-all cursor-pointer ${
+                      currentView === "CALIBRATION" 
+                        ? "bg-[#111827] text-white shadow-sm font-semibold" 
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Sliders className="w-4 h-4 text-emerald-500" />
+                    <span>Estrategia Core</span>
+                  </button>
+
+                  <button 
+                    onClick={() => handleMobileNav("PARSER")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-mono tracking-wide font-medium transition-all cursor-pointer ${
+                      currentView === "PARSER" 
+                        ? "bg-[#111827] text-white shadow-sm font-semibold" 
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Upload className="w-4 h-4 text-emerald-500" />
+                    <span>Parser Visual AI</span>
                   </button>
 
                   <button 
@@ -304,7 +328,7 @@ export default function Sidebar({
                     S
                   </div>
                   <div>
-                    <span className="font-bold text-lg tracking-tight text-[#1F2937] block">Xtreme Trade</span>
+                    <span className="font-bold text-lg tracking-tight text-[#1F2937] block">SignalAI</span>
                     <span className="text-[10px] block text-[#9CA3AF] uppercase tracking-widest font-mono font-medium -mt-1.5">Red Monad</span>
                   </div>
                 </div>
@@ -356,6 +380,46 @@ export default function Sidebar({
               {isCollapsed && (
                 <div className={tooltipClass}>
                   Agente Autónomo {agentIsOperating ? "(Autopiloto Activo)" : "(Pausado)"}
+                </div>
+              )}
+            </button>
+
+            {/* Estrategia Core */}
+            <button 
+              onClick={() => handleDesktopNav("CALIBRATION")}
+              className={`w-full flex items-center rounded-xl text-xs font-mono tracking-wide font-medium transition-all group relative cursor-pointer ${
+                isCollapsed ? "justify-center p-3" : "px-3.5 py-2.5 gap-3"
+              } ${
+                currentView === "CALIBRATION" 
+                  ? "bg-[#111827] text-white shadow-sm font-semibold" 
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <Sliders className="w-4 h-4 shrink-0 text-gray-400" />
+              {!isCollapsed && <span>Estrategia Core</span>}
+              {isCollapsed && (
+                <div className={tooltipClass}>
+                  Estrategia Core (Calibración)
+                </div>
+              )}
+            </button>
+
+            {/* Parser Visual AI */}
+            <button 
+              onClick={() => handleDesktopNav("PARSER")}
+              className={`w-full flex items-center rounded-xl text-xs font-mono tracking-wide font-medium transition-all group relative cursor-pointer ${
+                isCollapsed ? "justify-center p-3" : "px-3.5 py-2.5 gap-3"
+              } ${
+                currentView === "PARSER" 
+                  ? "bg-[#111827] text-white shadow-sm font-semibold" 
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <Upload className="w-4 h-4 shrink-0 text-gray-400" />
+              {!isCollapsed && <span>Parser Visual AI</span>}
+              {isCollapsed && (
+                <div className={tooltipClass}>
+                  Parser Visual AI (Cargar Gráfico)
                 </div>
               )}
             </button>

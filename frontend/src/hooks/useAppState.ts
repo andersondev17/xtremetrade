@@ -20,7 +20,7 @@ export function useAppState() {
     pnlHistory: [],
   });
   const [agentState, setAgentState] = useState<AgentState>({
-    riskProfile: "CONSERVATIVE",
+    riskProfile: "INTERMEDIATE",
     executionMode: "ASSISTED",
     minCapitalLimit: 5000,
     currentBalance: 12500,
@@ -29,6 +29,10 @@ export function useAppState() {
     consecutiveLosses: 0,
     opportunities: [],
     logs: [],
+    investmentProfile: "BALANCED",
+    investmentPercentage: 75,
+    maxAvailablePositions: 4,
+    swapSuggestions: [],
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +41,7 @@ export function useAppState() {
   const [analyzedResult, setAnalyzedResult] = useState<ChartAnalysisResult | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState("");
   const [dragActive, setDragActive] = useState(false);
-  const [currentView, setCurrentView] = useState<"FEED" | "ANALYTICS" | "HISTORY" | "AGENT">("AGENT");
+  const [currentView, setCurrentView] = useState<"FEED" | "ANALYTICS" | "HISTORY" | "AGENT" | "CALIBRATION" | "PARSER">("AGENT");
 
   const uploadFacade = useMemo(() => new ChartUploadFacade(), []);
 
@@ -154,6 +158,33 @@ export function useAppState() {
         toast.info("Scanned opportunity dismissed.");
       } catch (err: any) {
         toast.error(err.message || "Failed to dismiss opportunity.");
+      }
+    },
+    []
+  );
+
+  const handleApproveSwap = useCallback(
+    async (swapId: string) => {
+      try {
+        const updated = await ApiService.approveSwap(swapId);
+        setAgentState(updated);
+        toast.success("Stop-Loss Swap approved! Asset reallocated to better strategy.");
+        await refreshAllData(true);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to approve swap.");
+      }
+    },
+    [refreshAllData]
+  );
+
+  const handleRejectSwap = useCallback(
+    async (swapId: string) => {
+      try {
+        const updated = await ApiService.rejectSwap(swapId);
+        setAgentState(updated);
+        toast.info("Swap suggestion declined.");
+      } catch (err: any) {
+        toast.error(err.message || "Failed to decline swap suggestion.");
       }
     },
     []
@@ -283,6 +314,8 @@ export function useAppState() {
     handleConfigureAgent,
     handleApproveOpportunity,
     handleRejectOpportunity,
+    handleApproveSwap,
+    handleRejectSwap,
     handleCloseSignalEarly,
     handleResetAgent,
   };

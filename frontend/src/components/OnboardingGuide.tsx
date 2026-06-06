@@ -85,15 +85,15 @@ export default function OnboardingGuide({ onStartAutonomous, onUploadClick }: On
           </span>
           <span className="flex items-center gap-1 text-[11px] text-text-secondary">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            Conozca Xtreme Trade en 60 segundos
+            Conozca SignalAI en 60 segundos
           </span>
         </div>
 
         <h2 className="text-xl sm:text-2xl font-serif font-bold text-text-primary tracking-tight">
-          Bienvenido a la Terminal Xtreme Trade
+          Bienvenido a la Terminal SignalAI
         </h2>
         <p className="text-text-secondary text-xs sm:text-sm mt-1 mb-6 leading-relaxed">
-          Usted está visualizando la consola de trading autónoma profesional. Xtreme Trade traduce cualquier captura de TradingView en swaps on-chain inmediatos en la red Monad. Descubra cómo realizar sus primeros pasos:
+          Usted está visualizando la consola de trading autónoma profesional. SignalAI traduce cualquier captura de TradingView en swaps on-chain inmediatos en la red Monad. Descubra cómo realizar sus primeros pasos:
         </p>
 
         {/* Cambiador Dinámico Interactivo de Pasos */}
@@ -145,12 +145,24 @@ export default function OnboardingGuide({ onStartAutonomous, onUploadClick }: On
             <span>Conectado de forma segura a <strong>Monad Devnet Sandbox</strong> (Operaciones simuladas)</span>
           </div>
           
-          <button
-            onClick={handleCloseGuide}
-            className="text-[11px] text-text-primary hover:underline font-mono font-bold flex items-center gap-1 ml-auto sm:ml-0"
-          >
-            Entendido, ir a Consola <ArrowRight className="w-3" />
-          </button>
+          <div className="flex items-center gap-3.5 ml-auto sm:ml-0">
+            <button
+              onClick={() => {
+                playClickSound();
+                window.dispatchEvent(new Event("trigger-signalai-tour"));
+              }}
+              className="text-[11px] text-brand-purple hover:underline font-mono font-bold flex items-center gap-1"
+            >
+              Iniciar Guía Interactiva 🧭
+            </button>
+            <span className="text-gray-300 text-xs hidden sm:inline font-mono">/</span>
+            <button
+              onClick={handleCloseGuide}
+              className="text-[11px] text-text-primary hover:underline font-mono font-bold flex items-center gap-1"
+            >
+              Entendido, ir a Consola <ArrowRight className="w-3" />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -1,5 +1,5 @@
-import { AlertTriangle, ArrowUpRight, Check, Copy, Flame, RefreshCw, Terminal } from "lucide-react";
-import React, { ErrorInfo, ReactNode } from "react";
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RefreshCw, Terminal, ArrowUpRight, Copy, Check, Flame } from "lucide-react";
 
 interface Props {
   children?: ReactNode;
@@ -34,7 +34,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Xtreme Trade Core Boundary Exception Intercepted:", error, errorInfo);
+    console.error("SignalAI Core Boundary Exception Intercepted:", error, errorInfo);
     this.setState({ errorInfo });
   }
 
@@ -60,7 +60,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   private handleCopyLogs = () => {
     if (!this.state.error) return;
-    const logText = `[Xtreme Trade Error Logs]\nMessage: ${this.state.error.message}\nStack: ${this.state.error.stack}\nComponent Stack: ${this.state.errorInfo?.componentStack || "N/A"}`;
+    const logText = `[SignalAI Error Logs]\nMessage: ${this.state.error.message}\nStack: ${this.state.error.stack}\nComponent Stack: ${this.state.errorInfo?.componentStack || "N/A"}`;
     
     navigator.clipboard.writeText(logText).then(() => {
       this.setState({ copied: true });
@@ -92,7 +92,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
                   S
                 </div>
                 <div>
-                  <span className="font-bold text-lg tracking-tight text-[#1F2937] block">Xtreme Trade</span>
+                  <span className="font-bold text-lg tracking-tight text-[#1F2937] block">SignalAI</span>
                   <span className="text-[10px] block text-red-500 uppercase tracking-widest font-mono font-bold -mt-1">Process Fault Intercepted</span>
                 </div>
               </div>

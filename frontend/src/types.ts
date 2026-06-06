@@ -66,6 +66,19 @@ export interface ScannedOpportunity {
   expectedPnl: number;
 }
 
+export interface SwapSuggestion {
+  id: string;
+  fromSignalId: string;
+  fromToken: string;
+  fromAmount: number;
+  fromLossPercent: number;
+  toToken: string;
+  toOpportunityPattern: string;
+  toExpectedGain: number;
+  reason: string;
+  associatedOpportunity?: ScannedOpportunity;
+}
+
 export interface AgentState {
   riskProfile: "CONSERVATIVE" | "INTERMEDIATE" | "RISKY";
   executionMode: "AUTOPILOT" | "ASSISTED";
@@ -76,4 +89,8 @@ export interface AgentState {
   consecutiveLosses: number;
   opportunities: ScannedOpportunity[];
   logs: AgentLog[];
+  investmentProfile: "CONSERVATIVE" | "BALANCED" | "RISKY";
+  investmentPercentage: number;
+  maxAvailablePositions: number;
+  swapSuggestions: SwapSuggestion[];
 }

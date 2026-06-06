@@ -1,26 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  Cpu,
-  Grip,
-  List,
-  Calendar,
-  ChevronDown,
-  RefreshCw,
-  AlertCircle,
-  Upload
-} from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import ActiveSignals from "./components/ActiveSignals";
-import Sidebar from "./components/Sidebar";
-import PerformanceView from "./components/PerformanceView";
-import HistoryView from "./components/HistoryView";
-import { useAppState } from "./hooks/useAppState";
-import ErrorBoundary from "./components/ErrorBoundary";
 import AgentPanel from "./components/AgentPanel";
+import CalibrationView from "./components/CalibrationView";
+import ErrorBoundary from "./components/ErrorBoundary";
+import HistoryView from "./components/HistoryView";
 import LandingPage from "./components/LandingPage";
 import OnboardingGuide from "./components/OnboardingGuide";
+import PerformanceView from "./components/PerformanceView";
+import Sidebar from "./components/Sidebar";
+import VisualParserView from "./components/VisualParserView";
+import WalkthroughTour from "./components/WalkthroughTour";
+import { useAppState } from "./hooks/useAppState";
 
 /**
  * MAIN PRESENTATIONAL COMPOSER LAYER
@@ -49,6 +41,8 @@ export default function App() {
     handleConfigureAgent,
     handleApproveOpportunity,
     handleRejectOpportunity,
+    handleApproveSwap,
+    handleRejectSwap,
     handleCloseSignalEarly,
     handleResetAgent,
   } = useAppState();
@@ -268,69 +262,25 @@ export default function App() {
               }}
             />
 
+            {/* Interactive Step-by-Step Guided Walkthrough */}
+            <WalkthroughTour
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+              agentIsOperating={agentState.isOperating}
+              onToggleAgent={(operating) => handleConfigureAgent({ isOperating: operating })}
+              onSetMode={(mode) => handleConfigureAgent({ executionMode: mode })}
+            />
+
             {/* Operator Space Title Bar Breadcrumb Controls */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 select-none">
               <div className="flex items-baseline gap-2.5">
                 <h1 className="text-2xl font-serif font-semibold text-[#111827]">Console</h1>
-                <div className="flex items-center gap-2 text-xs text-text-tertiary font-mono">
-                  <span className="w-1.5 h-1.5 bg-gray-350 rounded-sm"></span>
-                  <span>operator space</span>
-                  <span className="text-gray-300">/</span>
-                  <span className="w-1.5 h-1.5 bg-accent-green rounded-full"></span>
-                  <span className="text-text-secondary">active intelligence</span>
-                </div>
-              </div>
-
-              {/* Presentational View Tab Sliders */}
-              <div className="flex bg-white p-1 rounded-xl shadow-sm border border-gray-200/40">
-                {(["AGENT", "FEED", "ANALYTICS", "HISTORY"] as const).map((view) => (
-                  <button
-                    key={view}
-                    onClick={() => setCurrentView(view)}
-                    className="relative px-5 py-1.5 text-xs uppercase tracking-wider font-mono font-semibold rounded-lg transition-colors cursor-pointer"
-                  >
-                    {currentView === view && (
-                      <motion.div
-                        layoutId="activeSubTab"
-                        className="absolute inset-0 bg-black rounded-lg"
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                      />
-                    )}
-                    <span
-                      className={`relative z-10 transition-colors duration-150 ${
-                        currentView === view
-                          ? "text-white"
-                          : "text-text-secondary hover:text-text-primary"
-                      }`}
-                    >
-                      {view === "AGENT"
-                        ? "Autonomous Agent"
-                        : view === "FEED"
-                          ? "Live Feed"
-                          : view === "ANALYTICS"
-                            ? "Performance"
-                            : "Archived Logs"}
-                    </span>
-                  </button>
-                ))}
+                
               </div>
 
               {/* Side helper grid controls */}
               <div className="flex items-center gap-2 ml-auto md:ml-0">
-                <button
-                  onClick={refreshAllData}
-                  className="p-2 bg-white rounded-lg border border-gray-100 text-gray-500 hover:text-text-primary shadow-sm active:scale-95 transition-all cursor-pointer"
-                  title="Manual re-sync feeds"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-                <button className="p-2 bg-white rounded-lg border border-gray-150 text-gray-400 shadow-sm cursor-help">
-                  <Grip className="w-4 h-4" />
-                </button>
-                <button className="p-2 bg-white rounded-lg border border-gray-150 text-gray-400 shadow-sm cursor-help">
-                  <List className="w-4 h-4" />
-                </button>
-
+                
                 <div className="flex items-center bg-black text-white pl-3 pr-1.5 py-1.5 rounded-lg ml-2 shadow-sm font-mono text-[11px]">
                   <span className="font-bold mr-1.5">
                     +{activeSignalsCount} EXECUTING
@@ -350,251 +300,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Apple Styled Display Hero Banner section */}
-            <section className="mb-12 py-12 border-b border-gray-200/75 max-w-6xl mx-auto text-center font-sans">
-              <h1 className="text-4xl sm:text-6xl font-serif font-light tracking-tight text-text-primary leading-tight max-w-5xl mx-auto">
-                Decentralized predictive logic{" "}
-                <span
-                  className="inline-block w-20 h-7 rounded-full align-middle bg-cover bg-center border border-gray-200 mx-1 shadow-sm select-none"
-                  style={{ backgroundImage: 'url("https://picsum.photos/seed/monad/240/120")' }}
-                ></span>{" "}
-                mapped across active liquid pools.
-              </h1>
-              <p className="text-[#4B5563] text-sm font-sans mt-5 max-w-2xl mx-auto leading-relaxed">
-                Empowered by vision pattern scanning on decentralized technical charts. Submit visual screenshots below to verify pattern matching confidence rates.
-              </p>
-
-              <div className="flex items-center justify-center gap-3 mt-6">
-                <a
-                  href="#active-signals-container"
-                  className="px-6 py-2.5 bg-black hover:bg-black/95 text-[#FFFFFF] font-semibold rounded-full text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                >
-                  Explore Feed <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
-                <button
-                  onClick={() => {
-                    const el = document.getElementById("chart-upload-file");
-                    if (el) el.click();
-                  }}
-                  className="px-6 py-2.5 bg-[#FFFFFF] hover:bg-gray-50 text-text-primary border border-gray-200 font-semibold rounded-full text-xs uppercase tracking-widest transition-all shadow-sm cursor-pointer"
-                >
-                  Verify Screenshot Pattern
-                </button>
-              </div>
-            </section>
-
-            {/* Gapless Mathematically Perfect Bento Grid Blocks */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch mb-12">
-              {/* Card 1: Multimodal Vision Upload parser (4 / 12) */}
-              <div className="lg:col-span-4 bg-[#FFFFFF] p-6 rounded-3xl border border-gray-200/50 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
-                    multimodal visual parser
-                  </h3>
-                  <span className="text-[10px] text-text-tertiary font-mono bg-gray-50 px-2.5 py-0.5 rounded border border-gray-100">
-                    AI Active
-                  </span>
-                </div>
-
-                <div
-                  onDragEnter={handleDrag}
-                  onDragOver={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDrop={handleDrop}
-                  className={`aspect-[4/3] w-full rounded-2xl border border-dashed flex flex-col items-center justify-center p-4 text-center cursor-pointer transition-all duration-300 relative ${
-                    dragActive
-                      ? "border-black bg-gray-50"
-                      : isAnalyzing
-                        ? "border-amber-400 bg-amber-50/20"
-                        : "border-gray-200/80 hover:border-black hover:bg-gray-50/50"
-                  }`}
-                >
-                  <input
-                    type="file"
-                    id="chart-upload-file"
-                    accept="image/*"
-                    onChange={handleFileInput}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="chart-upload-file"
-                    className="w-full h-full flex flex-col items-center justify-center cursor-pointer absolute inset-0 p-4"
-                  >
-                    {isAnalyzing ? (
-                      <div className="space-y-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mx-auto border border-amber-200">
-                          <Cpu className="w-5 h-5 text-amber-500 animate-spin" />
-                        </div>
-                        <p className="text-xs font-semibold text-text-primary">
-                          Scanning Candle Geometry...
-                        </p>
-                        <p className="text-[10px] text-amber-600 font-mono italic max-w-[170px] mx-auto truncate text-center leading-relaxed">
-                          {analysisStatus}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mx-auto group-hover:scale-105 transition-all">
-                          <Upload className="w-5 h-5 text-black" />
-                        </div>
-                        <p className="text-xs font-semibold text-[#1F2937]">
-                          Submit Trading Chart
-                        </p>
-                        <p className="text-[10px] text-text-secondary leading-relaxed max-w-[200px] mx-auto">
-                          Drop screenshot here to query real-time patterns with Gemini visual proxy
-                        </p>
-                      </div>
-                    )}
-                  </label>
-                </div>
-
-                {apiErrorMessage && (
-                  <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-xs flex items-start gap-2 select-none">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span className="font-medium">{apiErrorMessage}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Card 2: On-Chain Pool Accuracy Distribution mapping (5 / 12) */}
-              <div className="lg:col-span-5 bg-[#FFFFFF] p-6 rounded-3xl border border-gray-200/50 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div className="flex justify-between items-center mb-6 select-none">
-                  <div>
-                    <h3 className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider font-mono">
-                      Monad pool accuracy distribution
-                    </h3>
-                    <div className="text-[9px] text-text-secondary font-sans mt-0.5">
-                      Statistical deviation categorized across historic trades
-                    </div>
-                  </div>
-                  <button className="p-1 px-2.5 bg-gray-100 border border-gray-200/40 hover:bg-gray-150 text-[10px] text-text-primary rounded-lg font-mono cursor-help">
-                    Live Logs
-                  </button>
-                </div>
-
-                <div className="absolute top-20 left-6 text-[10px] text-text-secondary leading-tight pointer-events-none select-none">
-                  Stable Profit Ratio
-                  <br />
-                  <span className="font-bold text-text-primary text-base">52%</span>
-                </div>
-                <div className="absolute top-36 left-[41%] text-[10px] text-emerald-600 leading-tight pointer-events-none select-none">
-                  High Yield Target
-                  <br />
-                  <span className="font-bold text-emerald-500 text-base">18%</span>
-                </div>
-                <div className="absolute top-36 left-[72%] text-[10px] text-gray-500 leading-tight pointer-events-none select-none">
-                  Transient Drops
-                  <br />
-                  <span className="font-bold text-gray-700 text-base">30%</span>
-                </div>
-
-                {/* Micro block height elements bar stage */}
-                <div className="h-[140px] w-full flex items-end justify-between gap-[2px] pt-8 z-10 relative">
-                  {distributionBars.map((b, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${b.height}%` }}
-                      transition={{ duration: 0.5, delay: b.delay, ease: "easeOut" }}
-                      className="w-[3px] rounded-t-full hover:scale-110 transition-transform cursor-pointer relative group"
-                      style={{ backgroundColor: getBarColor(b.type) }}
-                    >
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-0.5 bg-black text-white text-[9px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none font-mono">
-                        {Math.floor(b.height * 10)} epoch
-                      </div>
-                    </motion.div>
-                  ))}
-
-                  <div className="absolute bottom-0 left-[36%] w-[28%] h-4 bg-accent-green/30 opacity-70 blur-[2px] pointer-events-none"></div>
-                </div>
-
-                {/* X Axis indicator markers */}
-                <div className="flex justify-between border-t border-gray-100 pt-2 text-[9px] text-text-tertiary font-mono tracking-widest mt-2 uppercase select-none">
-                  <span>Epoch #1</span>
-                  <span>Epoch #4</span>
-                  <span>Epoch #8</span>
-                  <span>Epoch #12</span>
-                  <span>Epoch #16</span>
-                </div>
-              </div>
-
-              {/* Card 3: Realtime Event Sync indicator tickers (3 / 12) */}
-              <div className="lg:col-span-3 bg-[#FFFFFF] p-6 rounded-3xl border border-gray-200/50 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-                <div className="flex justify-between items-center mb-4 select-none">
-                  <h3 className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider font-mono">
-                    real-time block syncer
-                  </h3>
-                  <span className="w-2 h-2 rounded-full bg-accent-green animate-pulse"></span>
-                </div>
-
-                <div className="space-y-3.5 flex-1 flex flex-col justify-center">
-                  <div className="flex justify-between items-center text-xs border-b border-gray-105 pb-2">
-                    <span className="font-mono text-text-secondary flex items-center gap-1.5 select-none">
-                      <span className="w-1.5 h-1.5 bg-text-primary rounded-full"></span>
-                      Txn verified
-                    </span>
-                    <span className="text-[#02c385] bg-emerald-500/10 px-1 rounded font-bold font-mono text-[10px]">
-                      +{filteredStats.winRate}% Match
-                    </span>
-                    <span className="text-text-tertiary font-mono text-[10px] select-none">now</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs border-b border-gray-105 pb-2">
-                    <span className="font-mono text-text-secondary flex items-center gap-1.5 select-none">
-                      <span className="w-1.5 h-1.5 bg-text-primary rounded-full"></span>
-                      Pool checked
-                    </span>
-                    <span className="text-text-primary font-bold font-mono text-[11px]">v1-dev</span>
-                    <span className="text-text-tertiary font-mono text-[10px] select-none">10s</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs border-b border-gray-105 pb-2">
-                    <span className="font-mono text-text-secondary flex items-center gap-1.5 select-none">
-                      <span className="w-1.5 h-1.5 bg-text-primary rounded-full"></span>
-                      Epoch synced
-                    </span>
-                    <span className="text-text-primary font-bold font-mono text-[11px]">
-                      #{currentBlock % 1000}
-                    </span>
-                    <span className="text-text-tertiary font-mono text-[10px] select-none">12s</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-1 font-mono text-[10px] text-text-secondary flex justify-between items-center select-none">
-                  <span>Current Monad Block:</span>
-                  <span className="font-semibold text-text-primary bg-gray-100 border border-gray-250 px-2 py-0.5 rounded">
-                    #{currentBlock.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            {/* Extended total dynamic volume banner statistics */}
-            <section className="mb-12 bg-white p-8 rounded-3xl border border-gray-200/50 shadow-sm">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <div>
-                  <h3 className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-2 font-mono">
-                    Monad Active Pool Volume Indicators
-                  </h3>
-                  <div className="text-5xl sm:text-7xl font-sans font-bold tracking-tight text-text-primary leading-none flex items-baseline select-none">
-                    122,872,<span className="text-gray-300">{(currentBlock % 1000).toString().padStart(3, "0")}</span>
-                    <span className="text-xs font-mono font-normal tracking-wide text-text-secondary uppercase border border-gray-250 rounded-full px-2.5 py-0.5 bg-gray-50 ml-3 shrink-0">
-                      Sync tick rate active
-                    </span>
-                  </div>
-                  <p className="text-text-secondary text-xs mt-3 select-none">
-                    Calculated over real-time liquidity pools activity feeds on Monad devnet.
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-end gap-1.5 font-mono text-[10px] text-text-secondary">
-                  <div className="flex items-center gap-2 bg-gray-50 px-3.5 py-2 rounded-xl border border-gray-150">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Epoch Rate: <strong>12.4 txn / sec</strong></span>
-                  </div>
-                  <span className="text-text-tertiary">All values syncing across liquid nodes...</span>
-                </div>
-              </div>
-            </section>
 
             {/* AI Vision multimodal verdict result showcase panel */}
             <AnimatePresence>
@@ -717,9 +422,33 @@ export default function App() {
                   onConfigure={handleConfigureAgent}
                   onApproveOpportunity={handleApproveOpportunity}
                   onRejectOpportunity={handleRejectOpportunity}
+                  onApproveSwap={handleApproveSwap}
+                  onRejectSwap={handleRejectSwap}
                   onResetAgent={handleResetAgent}
                   activeSignals={filteredSignals}
                   onCloseSignalEarly={handleCloseSignalEarly}
+                />
+              )}
+
+              {currentView === "CALIBRATION" && (
+                <CalibrationView
+                  agentState={agentState}
+                  onConfigure={handleConfigureAgent}
+                  onResetAgent={handleResetAgent}
+                />
+              )}
+
+              {currentView === "PARSER" && (
+                <VisualParserView
+                  isAnalyzing={isAnalyzing}
+                  analysisStatus={analysisStatus}
+                  analyzedResult={analyzedResult}
+                  apiErrorMessage={apiErrorMessage}
+                  dragActive={dragActive}
+                  handleDrag={handleDrag}
+                  handleDrop={handleDrop}
+                  handleFileInput={handleFileInput}
+                  setAnalyzedResult={setAnalyzedResult}
                 />
               )}
 

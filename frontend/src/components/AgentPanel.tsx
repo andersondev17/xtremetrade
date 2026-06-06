@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { AgentState, ScannedOpportunity, AgentLog } from "../types";
+import { AgentState, ScannedOpportunity, AgentLog, SwapSuggestion } from "../types";
 import {
   Bot,
   Shield,
@@ -15,7 +15,13 @@ import {
   RotateCcw,
   Clock,
   ArrowUpRight,
-  Info
+  Info,
+  ArrowRight,
+  ShieldAlert,
+  Settings2,
+  Calendar,
+  Check,
+  Percent
 } from "lucide-react";
 
 interface AgentPanelProps {
@@ -25,9 +31,14 @@ interface AgentPanelProps {
     executionMode?: "AUTOPILOT" | "ASSISTED";
     minCapitalLimit?: number;
     isOperating?: boolean;
+    investmentProfile?: "CONSERVATIVE" | "BALANCED" | "RISKY";
+    investmentPercentage?: number;
+    maxAvailablePositions?: number;
   }) => void;
   onApproveOpportunity: (id: string) => void;
   onRejectOpportunity: (id: string) => void;
+  onApproveSwap: (swapId: string) => void;
+  onRejectSwap: (swapId: string) => void;
   onResetAgent: () => void;
   activeSignals: any[];
   onCloseSignalEarly: (id: string) => void;
@@ -38,12 +49,16 @@ export default function AgentPanel({
   onConfigure,
   onApproveOpportunity,
   onRejectOpportunity,
+  onApproveSwap,
+  onRejectSwap,
   onResetAgent,
   activeSignals,
   onCloseSignalEarly,
 }: AgentPanelProps) {
   const [editingLimit, setEditingLimit] = useState(false);
   const [inputLimit, setInputLimit] = useState(agentState.minCapitalLimit.toString());
+  const [customPct, setCustomPct] = useState(agentState.investmentPercentage);
+  const [customMaxPos, setCustomMaxPos] = useState(agentState.maxAvailablePositions);
 
   const handleLimitSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +69,13 @@ export default function AgentPanel({
     }
   };
 
+  const handleCustomParamsSubmit = () => {
+    onConfigure({
+      investmentPercentage: Math.max(1, Math.min(100, customPct)),
+      maxAvailablePositions: Math.max(1, Math.min(10, customMaxPos))
+    });
+  };
+
   // Calculate profit pnl metrics
   const netEarnings = agentState.currentBalance - agentState.startingBalance;
   const growthPercent = (netEarnings / agentState.startingBalance) * 100;
@@ -61,6 +83,13 @@ export default function AgentPanel({
   // Active trades allocated amount total
   const activeAgentTrades = activeSignals.filter(s => s.id.startsWith("sig_agent_") && s.status === "ACTIVE");
   const allocatedCapitalTotal = activeAgentTrades.reduce((sum, s) => sum + (s.allocatedAmount || 0), 0);
+
+  // Determine interval range based on profile (Case 3)
+  const getHistoricalRangeLabel = () => {
+    if (agentState.riskProfile === "CONSERVATIVE") return "Historial de Precios: 1 Año (Estrategias de menor riesgo)";
+    if (agentState.riskProfile === "INTERMEDIATE") return "Historial de Precios: 6 Meses (Estrategias equilibradas)";
+    return "Historial de Precios: 3 Meses (Estrategias agresivas)";
+  };
 
   return (
     <div id="agent-panel-container" className="space-y-8 font-sans select-none">
@@ -120,7 +149,7 @@ export default function AgentPanel({
           </div>
 
           <div>
-            <span className="text-[10px] font-mono tracking-widest text-gray-400 uppercase font-semibold">Simulated Portfolio Capital</span>
+            <span className="text-[10px] font-mono tracking-widest text-[#9CA3AF] uppercase font-semibold">Simulated Portfolio Capital</span>
             <div className="text-3xl font-bold font-mono tracking-tight text-[#111827] mt-2 select-text">
               {agentState.currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               <span className="text-xs text-gray-400 font-sans font-medium ml-1.5 uppercase">MONAD</span>
@@ -143,7 +172,7 @@ export default function AgentPanel({
         {/* risk controls & safety threshold */}
         <div className="p-6 rounded-3xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between relative overflow-hidden">
           <div>
-            <span className="text-[10px] font-mono tracking-widest text-gray-400 uppercase font-semibold flex items-center gap-1.5">
+            <span className="text-[10px] font-mono tracking-widest text-[#9CA3AF] uppercase font-semibold flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-emerald-500" />
               Capital Protection Safety
             </span>
@@ -184,13 +213,13 @@ export default function AgentPanel({
           </div>
 
           <div className="mt-4">
-            <div className="flex justify-between items-center text-[9px] mb-1.5 font-mono uppercase tracking-wider text-gray-400">
+            <div className="flex justify-between items-center text-[9px] mb-1.5 font-mono uppercase tracking-wider text-gray-400 font-semibold">
               <span>equity safety buffer</span>
-              <span className="text-gray-900 font-bold">
+              <span className="text-gray-905 font-bold">
                 {Math.max(0, Math.round(((agentState.currentBalance - agentState.minCapitalLimit) / agentState.currentBalance) * 100))}% safe
               </span>
             </div>
-            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden font-mono">
               <div
                 className="h-full rounded-full bg-emerald-500 transition-all duration-700"
                 style={{ width: `${Math.max(0, Math.min(100, ((agentState.currentBalance - agentState.minCapitalLimit) / agentState.currentBalance) * 100))}%` }}
@@ -202,74 +231,118 @@ export default function AgentPanel({
         {/* sequence risk mitigation tracker */}
         <div className="p-6 rounded-3xl border border-gray-200 bg-white shadow-sm flex flex-col justify-between relative overflow-hidden">
           <div>
-            <span className="text-[10px] font-mono tracking-widest text-gray-400 uppercase font-semibold">Sequence Risk Mitigation</span>
-            <div className="text-2xl font-bold font-mono tracking-tight text-[#111827] mt-3.5 flex items-center gap-2">
-              <span className={`w-3.5 h-3.5 rounded-full ${agentState.consecutiveLosses > 0 ? "bg-amber-400 animate-pulse" : "bg-emerald-500"}`} />
-              {agentState.consecutiveLosses} Losses
+            <span className="text-[10px] font-mono tracking-widest text-[#9CA3AF] uppercase font-semibold flex items-center gap-1.5">
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+              Dynamic Stop-Loss Security Rule
+            </span>
+            <div className="mt-2.5">
+              <span className="text-xs font-serif italic text-[#1F2937] font-semibold block leading-relaxed">
+                Rule: "Never trigger autonomous stop losses directly."
+              </span>
+              <p className="text-[#4B5563] text-[11px] mt-1.5 leading-relaxed font-sans">
+                Positions hitting a negative threshold are frozen. The agent generates real-time <strong>Asset Swap Suggestions</strong> to reallocate capital into highly profitable strategies.
+              </p>
             </div>
-            <p className="text-[#6B7280] text-[11px] mt-2">
-              Anti-loss controls automatically throttle operational risks downward on 3 consecutive failures to safeguard system trust.
-            </p>
           </div>
 
-          <div className="mt-4 text-[10px] font-mono text-gray-500 bg-gray-50 p-2.5 rounded-xl border border-gray-150 flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
-            <span>Throttled Mode: {agentState.consecutiveLosses >= 3 ? "ACTIVATED (CONSERVATIVE MODE)" : "NORMAL OPERATIVE"}</span>
+          <div className="mt-4 text-[10px] font-mono text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-150 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            <span>Active Swaps in Queue: {agentState.swapSuggestions?.length || 0}</span>
           </div>
         </div>
       </div>
 
-      {/* CONTROLS BAR LAYOUT */}
-      <div className="p-5 rounded-2xl border border-gray-200/50 bg-white flex flex-col md:flex-row gap-6 items-center justify-between shadow-sm">
-        {/* risk selector */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-            <Sliders className="w-3.5 h-3.5 text-black" />
-            Active Risk Profile Parameter:
-          </span>
+      {/* CASE 1: DYNAMIC STOP-LOSS SWAP SUGGESTIONS ROW */}
+      {agentState.swapSuggestions && agentState.swapSuggestions.length > 0 && (
+        <div className="p-6 rounded-3xl border border-amber-200 bg-amber-50/20 space-y-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-100 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-amber-500 text-white shrink-0">
+                <AlertTriangle className="w-4 h-4" />
+              </span>
+              <div>
+                <h3 className="text-xs font-bold font-sans tracking-widest text-amber-950 uppercase">
+                  Reallocation Alerts: Dynamic Stop-Loss Action Suggestions
+                </h3>
+                <p className="text-amber-800 text-[11px] mt-0.5">
+                  Autonomous stop-loss is deactivated. Accept these dynamic swaps to migrate balance into immediate profit turnarounds.
+                </p>
+              </div>
+            </div>
+            <div className="text-[10px] font-mono bg-amber-150 text-amber-900 font-bold px-2.5 py-1 rounded-xl w-fit">
+              {agentState.swapSuggestions.length} Reallocation Swap Suggestion(s)
+            </div>
+          </div>
 
-          <div className="flex bg-gray-50 p-1 border border-gray-200/60 rounded-xl max-w-full overflow-x-auto">
-            {(["CONSERVATIVE", "INTERMEDIATE", "RISKY"] as const).map((profile) => (
-              <button
-                key={profile}
-                onClick={() => onConfigure({ riskProfile: profile })}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-wider transition-all uppercase whitespace-nowrap cursor-pointer ${
-                  agentState.riskProfile === profile
-                    ? "bg-black text-white shadow-sm"
-                    : "text-gray-400 hover:text-black hover:bg-gray-100"
-                }`}
-              >
-                {profile === "CONSERVATIVE" ? "Conservador" : profile === "INTERMEDIATE" ? "Intermedio" : "Arriesgado"}
-              </button>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <AnimatePresence mode="popLayout">
+              {agentState.swapSuggestions.map((swap) => (
+                <motion.div
+                  key={swap.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-white border border-amber-200 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between relative overflow-hidden"
+                >
+                  <div className="space-y-3.5">
+                    {/* Visual Swap Direction Line */}
+                    <div className="flex items-center justify-between gap-1 border-b border-gray-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded border border-rose-100">
+                          {swap.fromToken}
+                        </span>
+                        <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="font-bold text-xs text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-100">
+                          {swap.toToken}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-rose-500">
+                        Loss Mitigated: -{swap.fromLossPercent}%
+                      </span>
+                    </div>
+
+                    {/* Reasoning Description */}
+                    <div className="text-gray-700 text-[11px] leading-relaxed">
+                      <strong>Reallocation Advice:</strong> {swap.reason}
+                    </div>
+
+                    {/* Swap stats comparison */}
+                    <div className="grid grid-cols-2 gap-3 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 text-[11px] font-mono">
+                      <div>
+                        <span className="text-[9px] uppercase text-[#9CA3AF] block tracking-wider font-semibold">From Locked Capital</span>
+                        <span className="font-bold text-gray-800">${swap.fromAmount.toLocaleString()} MONAD</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] uppercase text-emerald-600 block tracking-wider font-bold">To Expected Yield</span>
+                        <span className="font-bold text-emerald-600 font-mono">+{swap.toExpectedGain}% Return</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions Approvals */}
+                  <div className="border-t border-gray-100 pt-3 flex justify-end gap-2 shrink-0">
+                    <button
+                      onClick={() => onRejectSwap(swap.id)}
+                      className="px-3.5 py-1.5 rounded-xl border border-gray-200 hover:text-black text-gray-450 text-[10px] font-bold font-mono uppercase tracking-wider transition-all hover:bg-gray-50 cursor-pointer"
+                    >
+                      Decline suggestion
+                    </button>
+                    <button
+                      onClick={() => onApproveSwap(swap.id)}
+                      className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-amber-200"
+                    >
+                      <Check className="w-3.5 h-3.5 shrink-0 text-white" />
+                      Approve & Execute Swap
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </div>
+      )}
 
-        {/* execution mode toggles */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto md:justify-end">
-          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-gray-400">
-            OPERATIONAL MODE:
-          </span>
 
-          <div className="flex bg-gray-50 p-1 border border-gray-200/60 rounded-xl w-full sm:w-auto">
-            {(["ASSISTED", "AUTOPILOT"] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => onConfigure({ executionMode: mode })}
-                className={`flex-1 sm:flex-initial px-4 py-1.5 rounded-lg text-[10px] font-bold font-mono tracking-wider uppercase transition-all whitespace-nowrap cursor-pointer ${
-                  agentState.executionMode === mode
-                    ? mode === "AUTOPILOT"
-                      ? "bg-emerald-600 text-white shadow-sm"
-                      : "bg-black text-white shadow-sm"
-                    : "text-gray-400 hover:text-black hover:bg-gray-100"
-                }`}
-              >
-                {mode === "ASSISTED" ? "Supervisory (Assisted)" : "Autopilot (Automated)"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         
@@ -277,7 +350,7 @@ export default function AgentPanel({
         <div className="xl:col-span-12 space-y-4">
           <div className="border-b border-gray-200/50 pb-3 flex justify-between items-center">
             <div>
-              <h3 className="text-sm font-semibold tracking-wide text-gray-900 font-serif flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold tracking-wide text-gray-905 font-serif flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 Scanned Liquidity Pool Opportunities Tray
               </h3>
@@ -294,7 +367,7 @@ export default function AgentPanel({
           {agentState.opportunities.length === 0 ? (
             <div className="text-center py-12 rounded-2xl border border-dashed border-gray-200 bg-white">
               <Bot className="w-8 h-8 text-gray-300 mx-auto mb-2.5 animate-bounce" />
-              <p className="text-xs font-serif font-medium text-gray-900 italic">Scanning pools for viable targets...</p>
+              <p className="text-xs font-serif font-medium text-gray-905 italic">Scanning pools for viable targets...</p>
               <p className="text-[9px] uppercase font-mono tracking-widest text-[#9CA3AF] mt-1.5 max-w-sm mx-auto leading-relaxed">
                 The agent is actively scanning Monad liquidity nodes. Target opportunities populate automatically.
               </p>
@@ -303,8 +376,6 @@ export default function AgentPanel({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AnimatePresence mode="popLayout">
                 {agentState.opportunities.map((opp) => {
-                  let riskTagColor = "text-emerald-700 bg-emerald-50 border-emerald-100";
-                  if (opp.confidence < 0.88) riskTagColor = "text-amber-700 bg-amber-50 border-amber-100";
                   return (
                     <motion.div
                       key={opp.id}
@@ -313,7 +384,7 @@ export default function AgentPanel({
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -15 }}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      className="p-5 bg-white border border-gray-200 rounded-3xl relative overflow-hidden shadow-sm flex flex-col justify-between"
+                      className="p-5 bg-white border border-gray-200 rounded-3xl relative overflow-hidden shadow-sm flex flex-col justify-between group hover:border-gray-400 transition-all"
                     >
                       <div>
                         {/* Upper row header */}
@@ -329,7 +400,7 @@ export default function AgentPanel({
                                   {opp.timeframe} frame
                                 </span>
                               </div>
-                              <p className="text-[10px] text-gray-400 font-mono flex items-center gap-1 mt-0.5">
+                              <p className="text-[10px] text-gray-450 font-mono flex items-center gap-1 mt-0.5">
                                 <span className="w-1.5 h-1.5 rounded-sm bg-emerald-500" />
                                 {opp.pattern}
                               </p>
@@ -343,12 +414,18 @@ export default function AgentPanel({
                         </div>
 
                         {/* Mid Row content */}
-                        <p className="text-[11px] text-[#6B7280] italic leading-relaxed bg-gray-50/50 p-2.5 rounded-xl border border-gray-150 mt-4">
+                        <p className="text-[11px] text-[#6B7280] italic leading-relaxed bg-gray-50/50 p-2.5 rounded-xl border border-gray-150 mt-4 font-sans">
                           {opp.reasoning}
                         </p>
 
+                        {/* Case 3: Display historical bounds indicators */}
+                        <div className="text-[9.5px] font-mono text-gray-500 mt-3 p-2 bg-zinc-50 border border-gray-200/50 rounded-xl flex items-center gap-1.5 leading-snug select-text">
+                          <Calendar className="w-3.5 text-black shrink-0" />
+                          <span>Evaluation Profile ({agentState.riskProfile}): Analyzing peak-to-valley stats over {agentState.riskProfile === "CONSERVATIVE" ? "1 year" : agentState.riskProfile === "INTERMEDIATE" ? "6 months" : "3 months"} for optimal buy turnaround triggers.</span>
+                        </div>
+
                         {/* Metrics specs table */}
-                        <div className="grid grid-cols-3 gap-2 py-1 text-center text-[11px] mt-4 font-mono">
+                        <div className="grid grid-cols-3 gap-2 py-1 text-center text-[11px] mt-3 font-mono">
                           <div className="bg-gray-50/50 p-2 rounded-xl">
                             <span className="text-[8px] uppercase text-gray-400 tracking-wider">Entry</span>
                             <div className="font-bold text-gray-800">${opp.price}</div>
@@ -367,7 +444,7 @@ export default function AgentPanel({
                       {/* Lower row manual approval trigger action buttons selection */}
                       <div className="border-t border-gray-100 pt-3.5 mt-4 flex items-center justify-end gap-2">
                         {agentState.executionMode === "AUTOPILOT" ? (
-                          <div className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl flex items-center gap-1 animate-pulse">
+                          <div className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl flex items-center gap-1 animate-pulse border border-emerald-100">
                             <CheckCircle className="w-3.5 h-3.5 fill-emerald-100 stroke-emerald-600" />
                             Autopilot handling execution
                           </div>
@@ -375,7 +452,7 @@ export default function AgentPanel({
                           <>
                             <button
                               onClick={() => onRejectOpportunity(opp.id)}
-                              className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-gray-400 hover:text-black hover:bg-gray-50 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-gray-400 hover:text-black hover:bg-gray-50 text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer bg-white"
                             >
                               Dismiss Target
                             </button>
@@ -383,7 +460,7 @@ export default function AgentPanel({
                               onClick={() => {
                                 onApproveOpportunity(opp.id);
                               }}
-                              className="px-4 py-1.5 rounded-xl bg-black hover:bg-black/90 text-white text-[10px] font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-4 py-1.5 rounded-xl bg-black hover:bg-black/90 text-white text-[10px] font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow"
                             >
                               <ArrowUpRight className="w-3.5 h-3.5 text-[#4ADE80]" />
                               Approve & Execute Position
@@ -400,23 +477,23 @@ export default function AgentPanel({
         </div>
 
         {/* ACTIVE AGENT POSITIONS & AUDIT LOGS */}
-        <div className="xl:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+        <div className="xl:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4 font-sans">
           
           {/* ACTIVE POSITIONS MANAGED BY AGENT */}
           <div className="space-y-4">
             <div className="border-b border-gray-200/50 pb-3">
-              <h3 className="text-sm font-semibold tracking-wide text-gray-900 font-serif">
+              <h3 className="text-sm font-semibold tracking-wide text-[#111827] font-serif">
                 Active Managed Agent Positions ({activeAgentTrades.length})
               </h3>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-[#4B5563]">
                 Direct portfolio positions supervised with real-time Take-Profit / Stop-Loss.
               </p>
             </div>
 
             {activeAgentTrades.length === 0 ? (
-              <div className="text-center py-12 rounded-2xl border border-dashed border-gray-200 bg-white text-gray-400">
-                <Shield className="w-7 h-7 text-gray-250 mx-auto mb-2" />
-                <p className="text-xs font-serif font-medium text-gray-900 italic">No active positions open</p>
+              <div className="text-center py-12 rounded-2xl border border-dashed border-gray-200 bg-white text-gray-450">
+                <Shield className="w-7 h-7 text-gray-200 mx-auto mb-2" />
+                <p className="text-xs font-serif font-medium text-gray-905 italic">No active positions open</p>
                 <p className="text-[9px] uppercase font-mono tracking-widest text-[#9CA3AF] mt-1">
                   Approve scanned candidates above to launch position safety tracking.
                 </p>
@@ -424,11 +501,13 @@ export default function AgentPanel({
             ) : (
               <div className="space-y-3.5">
                 {activeAgentTrades.map((trade) => {
-                  const percentOfPortfolio = ((trade.allocatedAmount || 0) / agentState.currentBalance) * 100;
+                  // Case 2 details: Check if trade is highly certain (>95% confidence)
+                  const extremelyConfis = trade.confidence > 0.95;
+                  
                   return (
                     <div 
                       key={trade.id} 
-                      className="p-4 bg-white border border-gray-200 rounded-3xl relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:border-gray-250 transition-all duration-300"
+                      className="p-4 bg-white border border-gray-200 rounded-3xl relative overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-md hover:border-black transition-all duration-300"
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div>
@@ -437,9 +516,14 @@ export default function AgentPanel({
                             <span className="text-[8px] font-mono bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 py-0.5 rounded uppercase">
                               {trade.signal}
                             </span>
+                            {extremelyConfis && (
+                              <span className="text-[7.5px] font-mono bg-indigo-50 text-indigo-700 border border-indigo-100 px-1.5 py-0.5 rounded tracking-wide uppercase animate-pulse font-bold">
+                                High Conviction (&gt;95% Target +15%)
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[10px] text-gray-400 font-mono mt-1">
-                            Allocated: <span className="text-gray-900 font-bold">${trade.allocatedAmount?.toLocaleString()} MONAD</span> 
+                          <p className="text-[10px] text-[#4B5563] font-mono mt-1">
+                            Allocation: <span className="text-[#111827] font-bold">${trade.allocatedAmount?.toLocaleString()} MONAD</span> 
                           </p>
                         </div>
 
@@ -448,13 +532,24 @@ export default function AgentPanel({
                           className="px-2.5 py-1 rounded-xl text-[9px] font-bold font-mono uppercase bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100 transition-colors cursor-pointer select-none"
                           title="Force immediate sell-off return to capital pool"
                         >
-                          Exit Trade early
+                          Exit trade early
                         </button>
                       </div>
 
-                      <div className="mt-4 pt-3.5 border-t border-gray-50 flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-gray-400">Exit Target: <span className="text-emerald-600 font-bold">${trade.targetPrice}</span></span>
-                        <span className="text-gray-400">Buffer Stop: <span className="text-rose-500 font-bold">${trade.stopLoss}</span></span>
+                      {/* Display Case 2 details */}
+                      {extremelyConfis ? (
+                        <div className="my-2 bg-indigo-50/50 p-2.5 rounded-xl text-[9.5px] text-indigo-950 font-sans leading-relaxed border border-indigo-100/50 mb-0">
+                          <strong>Autonomic Take-Profit Delayed Hold Decision:</strong> Confidence indicator has exceeded 95% threshold ({Math.round(trade.confidence * 100)}%). Stretched target evaluation of +15% is underway instead of standard 10% TP to maximize yield.
+                        </div>
+                      ) : (
+                        <div className="my-1.5 text-[9px] font-mono text-emerald-600 font-semibold">
+                          ✓ Standard 10% Take Profit active autonomously.
+                        </div>
+                      )}
+
+                      <div className="mt-3.5 pt-3 border-t border-gray-100 flex justify-between items-center text-[10px] font-mono">
+                        <span className="text-gray-400">Exit Target: <span className="text-emerald-700 font-bold">${trade.targetPrice}</span></span>
+                        <span className="text-gray-400 font-bold text-amber-600">Blocked Auto-SL (Suggested swap active)</span>
                       </div>
                     </div>
                   );
@@ -467,23 +562,23 @@ export default function AgentPanel({
           <div className="space-y-4">
             <div className="border-b border-gray-200/50 pb-3 flex justify-between items-center">
               <div>
-                <h3 className="text-sm font-semibold tracking-wide text-gray-900 font-serif">
+                <h3 className="text-sm font-semibold tracking-wide text-gray-905 font-serif">
                   Full Operations Audit Ledger (Trace)
                 </h3>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-[#4B5563]">
                   Cryptographic log of calculations, risk evaluations, and trade actions.
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 text-[9px] font-mono text-[#10b981] bg-[#DCFCE7] px-2 py-0.5 rounded border border-emerald-100 shrink-0">
+              <div className="flex items-center gap-1.5 text-[9px] font-mono text-[#10b981] bg-[#DCFCE7] px-2 py-0.5 rounded border border-emerald-100 shrink-0 select-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 LIVE STREAM
               </div>
             </div>
 
-            <div className="bg-gray-900 text-gray-100 p-5 rounded-3xl font-mono text-[11px] h-[350px] overflow-y-auto leading-relaxed border border-black scrollbar-thin">
+            <div className="bg-gray-900 text-gray-100 p-5 rounded-3xl font-mono text-[11px] h-[350px] overflow-y-auto leading-relaxed border border-black scrollbar-thin scrollbar-thumb-gray-800">
               {agentState.logs.length === 0 ? (
-                <div className="text-center text-gray-500 py-12 flex flex-col items-center justify-center h-full">
+                <div className="text-center text-[#9CA3AF] py-12 flex flex-col items-center justify-center h-full">
                   <Clock className="w-5 h-5 text-gray-600 animate-spin mb-2" />
                   Generating system logs stream...
                 </div>
@@ -494,17 +589,17 @@ export default function AgentPanel({
                       let typeColor = "text-blue-400";
                       let prefix = "[INFO]";
                       if (log.type === "DECISION") {
-                        typeColor = "text-amber-400";
-                        prefix = "[LOGIC]";
+                        typeColor = "text-amber-450 font-bold";
+                        prefix = "[DECISION]";
                       } else if (log.type === "TRADE_OPEN") {
-                        typeColor = "text-emerald-400";
-                        prefix = "[ORDER]";
+                        typeColor = "text-emerald-405 font-bold";
+                        prefix = "[ORDER_OPEN]";
                       } else if (log.type === "TRADE_CLOSE") {
-                        typeColor = "text-[#818CF8]";
-                        prefix = "[EXIT]";
+                        typeColor = "text-indigo-400 font-bold";
+                        prefix = "[ORDER_CLOSE]";
                       } else if (log.type === "RISK_ALERT") {
-                        typeColor = "text-rose-450 font-bold";
-                        prefix = "[CRITICAL_STOP]";
+                        typeColor = "text-rose-450 font-extrabold";
+                        prefix = "[RISK_WARNING]";
                       }
 
                       return (

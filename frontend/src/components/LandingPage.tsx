@@ -1,6 +1,6 @@
-import { ArrowUpRight, ChevronRight, Play, Send, ShieldCheck, Sparkles, Zap } from "lucide-react";
-import { motion } from "motion/react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { ArrowUpRight, Cpu, LineChart, History, CheckCircle2, Sparkles, Send, ShieldCheck, Zap, Layers, ChevronRight, Play } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { playClickSound } from "../lib/audio";
 
 interface LandingPageProps {
@@ -16,7 +16,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
       title: "1. Capture y Cargue su Gráfico",
       subtitle: "Escáner Multimodal Universal",
       summary: "Tome una captura de pantalla de cualquier activo en TradingView que contenga velas, líneas de tendencia o indicadores.",
-      detail: "No importa si incorpora niveles personalizados de RSI, medias móviles o retrocesos de Fibonacci. Xtreme Trade procesa la matriz de píxeles al instante utilizando modelos de visión de Gemini.",
+      detail: "No importa si incorpora niveles personalizados de RSI, medias móviles o retrocesos de Fibonacci. SignalAI procesa la matriz de píxeles al instante utilizando modelos de visión de Gemini.",
       badge: "Compatible con JPEG/PNG"
     },
     {
@@ -30,7 +30,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
       title: "3. Enrutamiento On-Chain en Monad",
       subtitle: "Contratos Inteligentes Descentralizados",
       summary: "Asegura rutas óptimas de liquidez y ejecuta el swap instantáneamente en la red.",
-      detail: "Xtreme Trade se comunica directamente con contratos descentralizados en Monad Devnet, eliminando la fricción y demora de confirmaciones manuales en billeteras tradicionales.",
+      detail: "SignalAI se comunica directamente con contratos descentralizados en Monad Devnet, eliminando la fricción y demora de confirmaciones manuales en billeteras tradicionales.",
       badge: "Liquidación en 3 Seg"
     }
   ];
@@ -39,7 +39,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
     { sender: "user", text: "[Envía captura de pantalla del gráfico MONAD/USDC, temporalidad de 1 hora]" },
     {
       sender: "bot",
-      text: "🤖 Xtreme Trade *Escáner Activo*:\nPatrón Detectado: *Morning Star Alcista*\nPrecisión de Confianza: *94.7%*\n\n📈 Entrada Propuesta @ $1.25\n🛑 Stop Loss: $1.19\n🎯 Take Profit: $1.38",
+      text: "🤖 SignalAI *Escáner Activo*:\nPatrón Detectado: *Morning Star Alcista*\nPrecisión de Confianza: *94.7%*\n\n📈 Entrada Propuesta @ $1.25\n🛑 Stop Loss: $1.19\n🎯 Take Profit: $1.38",
       buttons: ["Aprobar Ejecución On-Chain (2% Riesgo)", "Rechazar y Archivar"]
     },
     { sender: "user", text: "[Presiona: Aprobar Ejecución On-Chain]" },
@@ -78,7 +78,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
             S
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight text-[#111827] leading-none">Xtreme Trade</h1>
+            <h1 className="font-bold text-lg tracking-tight text-[#111827] leading-none">SignalAI</h1>
             <span className="text-[9px] font-mono text-text-secondary uppercase tracking-widest block mt-0.5">Monad Blitz Medellín</span>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
         </div>
 
         <h1 className="text-5xl sm:text-7xl font-serif font-semibold tracking-tight text-[#111827] max-w-5xl mx-auto leading-[1.08] mb-6">
-          Xtreme Trade convierte cualquier gráfico de TradingView en un trade ejecutado <span className="bg-[#DCFCE7] text-emerald-800 rounded-2xl px-3 inline-block font-sans font-extrabold rotate-1 shadow-sm">on-chain</span> en 3 segundos.
+          SignalAI convierte cualquier gráfico de TradingView en un trade ejecutado <span className="bg-[#DCFCE7] text-emerald-800 rounded-2xl px-3 inline-block font-sans font-extrabold rotate-1 shadow-sm">on-chain</span> en 3 segundos.
         </h1>
 
         <p className="text-text-secondary text-base sm:text-lg max-w-3xl mx-auto mt-6 mb-10 leading-relaxed font-sans">
@@ -179,7 +179,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
               Arquitectura del Sistema y Flujo
             </span>
             <h2 className="text-3xl sm:text-4xl font-serif font-bold mt-4 animate-fade-in">
-              Cómo Xtreme Trade descifra la geometría de las velas
+              Cómo SignalAI descifra la geometría de las velas
             </h2>
             <p className="text-gray-400 text-xs sm:text-sm mt-3.5">
               Un puente modular de alta precisión compuesto por tres etapas clave de procesamiento.
@@ -318,7 +318,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
               Ecosistema Móvil Completo
             </span>
             <h2 className="text-4xl font-serif font-bold text-[#111827] mt-3">
-              Asistente Xtreme Trade integrado en Telegram
+              Asistente SignalAI integrado en Telegram
             </h2>
           </div>
 
@@ -373,7 +373,7 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
                 </div>
                 <div>
                   <div className="font-bold text-xs text-text-primary flex items-center gap-1">
-                    Xtreme Trade Scanner Bot
+                    SignalAI Scanner Bot
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   </div>
                   <span className="text-[10px] text-text-secondary block">@signalai_monad_bot</span>
@@ -460,11 +460,11 @@ export default function LandingPage({ onEnterDashboard }: LandingPageProps) {
             <div className="w-6 h-6 bg-white text-black rounded font-bold flex items-center justify-center font-mono text-xs">
               S
             </div>
-            <span className="font-bold text-white text-sm tracking-tight font-sans">Xtreme Trade</span>
+            <span className="font-bold text-white text-sm tracking-tight font-sans">SignalAI</span>
           </div>
 
           <p className="font-sans text-center md:text-left">
-            © 2026 Terminal Xtreme Trade. Desarrollado para la hackathon Monad Blitz Medellín. Todos los derechos reservados.
+            © 2026 Terminal SignalAI. Desarrollado para la hackathon Monad Blitz Medellín. Todos los derechos reservados.
           </p>
 
           <div className="flex gap-6">
